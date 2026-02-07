@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+__pypackages__/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Tests/coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+
+# IDEs/editors
+.idea/
+.vscode/
+!.vscode/launch.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env/secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+token.txt
+
+# Infra secrets/certs
+infra/nginx/certs/
+
+# Temp/local
+.tmp/
+.tmp_assignment_text*.txt
+*.swp
+*.swo

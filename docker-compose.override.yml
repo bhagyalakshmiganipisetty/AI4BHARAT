@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      args:
+        INSTALL_DEV: "true"
+    command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    environment:
+      ENV: development
+    ports:
+      - "8000:8000"
+      - "5678:5678"

@@ -1,0 +1,259 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bugtracker-config
+  labels:
+    app: bugtracker
+data:
+  APP_NAME: ai4b-bugtracker
+  ENV: production
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  JWT_ALG: RS256
+  JWT_PRIVATE_KEY_PATH: /etc/jwt/jwt_private.pem
+  JWT_PUBLIC_KEY_PATH: /etc/jwt/jwt_public.pem
+  RATE_LIMIT_LOGIN: "3/minute"
+  RATE_LIMIT_GLOBAL: "100/minute"
+  RATE_LIMIT_SENSITIVE: "10/minute"
+  PASSWORD_MIN_LENGTH: "8"
+  PASSWORD_COMPLEXITY_REGEX: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+  CORS_ORIGINS: https://bugtracker.example.com
+  CORS_ALLOW_METHODS: GET,POST,PATCH,DELETE,OPTIONS
+  CORS_ALLOW_HEADERS: Authorization,Content-Type
+  CORS_MAX_AGE: "600"
+  LOG_LEVEL: INFO
+  REDIS_URL: redis://redis:6379/0
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bugtracker-secrets
+stringData:
+  DATABASE_URL: postgresql+psycopg2://ai4b:ai4b@postgres:5432/bugtracker
+  PII_ENCRYPTION_KEY: REPLACE_WITH_BASE64_FERNET_KEY
+  PII_HASH_KEY: REPLACE_WITH_PII_HASH_KEY
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bugtracker-jwt
+stringData:
+  jwt_private.pem: |
+    -----BEGIN PRIVATE KEY-----
+    REPLACE_WITH_PRIVATE_KEY
+    -----END PRIVATE KEY-----
+  jwt_public.pem: |
+    -----BEGIN PUBLIC KEY-----
+    REPLACE_WITH_PUBLIC_KEY
+    -----END PUBLIC KEY-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bugtracker-db
+stringData:
+  POSTGRES_DB: bugtracker
+  POSTGRES_USER: ai4b
+  POSTGRES_PASSWORD: ai4b
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: bugtracker-db
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bugtracker-api
+  labels:
+    app: bugtracker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bugtracker
+  template:
+    metadata:
+      labels:
+        app: bugtracker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: api
+          image: ai4b-bugtracker:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: bugtracker-config
+            - secretRef:
+                name: bugtracker-secrets
+          volumeMounts:
+            - name: jwt-keys
+              mountPath: /etc/jwt
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: jwt-keys
+          secret:
+            secretName: bugtracker-jwt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bugtracker-api
+spec:
+  selector:
+    app: bugtracker
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bugtracker-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - bugtracker.local
+      secretName: bugtracker-tls
+  rules:
+    - host: bugtracker.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bugtracker-api
+                port:
+                  number: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bugtracker-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bugtracker-api
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
