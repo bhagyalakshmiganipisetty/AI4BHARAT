@@ -44,7 +44,9 @@ class Settings(BaseSettings):
             try:
                 Fernet(self.pii_encryption_key.encode("utf-8"))
             except Exception as exc:
-                raise ValueError("PII_ENCRYPTION_KEY must be a valid Fernet key") from exc
+                raise ValueError(
+                    "PII_ENCRYPTION_KEY must be a valid Fernet key"
+                ) from exc
         return self
 
     @property
@@ -53,7 +55,9 @@ class Settings(BaseSettings):
 
     @property
     def allowed_methods(self) -> list[str]:
-        return [m.strip().upper() for m in self.cors_allow_methods.split(",") if m.strip()]
+        return [
+            m.strip().upper() for m in self.cors_allow_methods.split(",") if m.strip()
+        ]
 
     @property
     def allowed_headers(self) -> list[str]:

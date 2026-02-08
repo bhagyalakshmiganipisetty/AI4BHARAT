@@ -1,7 +1,7 @@
 """Initial tables
 
 Revision ID: 0001_init
-Revises: 
+Revises:
 Create Date: 2026-02-03
 """
 
@@ -19,7 +19,9 @@ depends_on = None
 def upgrade():
     op.create_table(
         "users",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("username", sa.String(length=50), nullable=False, unique=True),
         sa.Column("email_encrypted", sa.String(length=512), nullable=False),
         sa.Column("email_hash", sa.String(length=64), nullable=False, unique=True),
@@ -37,23 +39,41 @@ def upgrade():
 
     op.create_table(
         "projects",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("name", sa.String(length=100), nullable=False, unique=True),
         sa.Column("description", sa.String(length=1000), nullable=True),
-        sa.Column("created_by_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "created_by_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.Column("is_archived", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "is_archived", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
     )
 
     op.create_table(
         "issues",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("open", "in_progress", "resolved", "closed", "reopened", name="issuestatus"),
+            sa.Enum(
+                "open",
+                "in_progress",
+                "resolved",
+                "closed",
+                "reopened",
+                name="issuestatus",
+            ),
             nullable=False,
             server_default="open",
         ),
@@ -63,9 +83,24 @@ def upgrade():
             nullable=False,
             server_default="medium",
         ),
-        sa.Column("project", postgresql.UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("reporter", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="RESTRICT"), nullable=False),
-        sa.Column("assignee", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "project",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("projects.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "reporter",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
+        sa.Column(
+            "assignee",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("due_date", sa.Date(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
@@ -73,10 +108,22 @@ def upgrade():
 
     op.create_table(
         "comments",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False
+        ),
         sa.Column("content", sa.Text(), nullable=False),
-        sa.Column("issue_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("issues.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("author_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "issue_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("issues.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "author_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
     )

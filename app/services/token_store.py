@@ -1,4 +1,5 @@
 """Token blacklist/rotation store with Redis fallback."""
+
 from __future__ import annotations
 
 import time
@@ -15,12 +16,16 @@ class Store(Protocol):
     def inc_failure(self, key: str, window: int) -> int: ...
     def clear_failure(self, key: str) -> None: ...
     def add_refresh_session(self, user_id: str, jti: str, ttl_seconds: int) -> None: ...
-    def rotate_refresh_session(self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int) -> None: ...
+    def rotate_refresh_session(
+        self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int
+    ) -> None: ...
     def remove_refresh_session(self, user_id: str, jti: str) -> None: ...
     def is_refresh_active(self, user_id: str, jti: str) -> bool: ...
     def revoke_all_refresh(self, user_id: str) -> None: ...
     def list_refresh_sessions(self, user_id: str) -> list[str]: ...
-    def set_access_revoked_at(self, user_id: str, revoked_at: int, ttl_seconds: int) -> None: ...
+    def set_access_revoked_at(
+        self, user_id: str, revoked_at: int, ttl_seconds: int
+    ) -> None: ...
     def get_access_revoked_at(self, user_id: str) -> int | None: ...
 
 
@@ -57,7 +62,9 @@ class InMemoryStore:
     def add_refresh_session(self, user_id: str, jti: str, ttl_seconds: int) -> None:
         self._refresh.setdefault(user_id, {})[jti] = time.time() + ttl_seconds
 
-    def rotate_refresh_session(self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int) -> None:
+    def rotate_refresh_session(
+        self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int
+    ) -> None:
         self.remove_refresh_session(user_id, old_jti)
         self.add_refresh_session(user_id, new_jti, ttl_seconds)
 
@@ -89,7 +96,9 @@ class InMemoryStore:
         self._refresh[user_id] = {jti: sessions[jti] for jti in active}
         return active
 
-    def set_access_revoked_at(self, user_id: str, revoked_at: int, ttl_seconds: int) -> None:
+    def set_access_revoked_at(
+        self, user_id: str, revoked_at: int, ttl_seconds: int
+    ) -> None:
         self._access_revoked[user_id] = (revoked_at, time.time() + ttl_seconds)
 
     def get_access_revoked_at(self, user_id: str) -> int | None:
@@ -138,7 +147,9 @@ class RedisStore:
         pipe.expire(set_key, ttl_seconds)
         pipe.execute()
 
-    def rotate_refresh_session(self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int) -> None:
+    def rotate_refresh_session(
+        self, user_id: str, old_jti: str, new_jti: str, ttl_seconds: int
+    ) -> None:
         self.remove_refresh_session(user_id, old_jti)
         self.add_refresh_session(user_id, new_jti, ttl_seconds)
 
@@ -176,7 +187,9 @@ class RedisStore:
                 self.client.srem(set_key, jti)
         return active
 
-    def set_access_revoked_at(self, user_id: str, revoked_at: int, ttl_seconds: int) -> None:
+    def set_access_revoked_at(
+        self, user_id: str, revoked_at: int, ttl_seconds: int
+    ) -> None:
         self.client.setex(f"accessrevoked:{user_id}", ttl_seconds, str(revoked_at))
 
     def get_access_revoked_at(self, user_id: str) -> int | None:

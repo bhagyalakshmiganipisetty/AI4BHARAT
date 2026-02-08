@@ -57,7 +57,11 @@ def list_issues(
 
 
 @router.get("/{issue_id}", response_model=IssueOut)
-def get_issue(issue_id: UUID, db: Session = Depends(deps.get_db), _: User = Depends(deps.get_current_user)):
+def get_issue(
+    issue_id: UUID,
+    db: Session = Depends(deps.get_db),
+    _: User = Depends(deps.get_current_user),
+):
     issue = db.get(Issue, issue_id)
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
@@ -159,4 +163,7 @@ def _enforce_transition(issue: Issue, new_status: IssueStatus, db: Session) -> N
     if issue.priority == IssuePriority.critical and new_status == IssueStatus.closed:
         comment_count = db.query(Comment).filter(Comment.issue_id == issue.id).count()
         if comment_count == 0:
-            raise HTTPException(status_code=400, detail="Critical issues require a comment before closing")
+            raise HTTPException(
+                status_code=400,
+                detail="Critical issues require a comment before closing",
+            )

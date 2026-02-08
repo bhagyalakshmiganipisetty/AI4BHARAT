@@ -5,7 +5,9 @@ from app.services.security import create_token, hash_password
 
 
 def _create_user(db_session, role: UserRole, username: str) -> User:
-    user = User(username=username, password_hash=hash_password("Manager123!"), role=role)
+    user = User(
+        username=username, password_hash=hash_password("Manager123!"), role=role
+    )
     user.email = f"{username}@example.com"
     db_session.add(user)
     db_session.commit()

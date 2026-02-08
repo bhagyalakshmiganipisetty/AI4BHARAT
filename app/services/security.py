@@ -15,7 +15,9 @@ def verify_password_complexity(password: str) -> bool:
 
 
 def hash_password(password: str) -> str:
-    if len(password) < settings.password_min_length or not verify_password_complexity(password):
+    if len(password) < settings.password_min_length or not verify_password_complexity(
+        password
+    ):
         raise ValueError("Password does not meet complexity requirements")
     password_bytes = password.encode("utf-8")
     if len(password_bytes) > 72:
@@ -54,9 +56,15 @@ def get_public_key() -> str:
     return PUBLIC_KEY_CACHE
 
 
-def create_token(subject: str, token_type: str, expires_delta: timedelta, jti: str | None = None) -> str:
+def create_token(
+    subject: str, token_type: str, expires_delta: timedelta, jti: str | None = None
+) -> str:
     now = datetime.now(timezone.utc)
-    payload: Dict[str, Any] = {"sub": subject, "type": token_type, "iat": int(now.timestamp())}
+    payload: Dict[str, Any] = {
+        "sub": subject,
+        "type": token_type,
+        "iat": int(now.timestamp()),
+    }
     if jti:
         payload["jti"] = jti
     payload["exp"] = int((now + expires_delta).timestamp())

@@ -11,21 +11,27 @@ from app.schemas.issue import IssueUpdate
 def get_project(project_id: UUID, db: Session = Depends(get_db)) -> Project:
     project = db.get(Project, project_id)
     if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
     return project
 
 
 def get_issue(issue_id: UUID, db: Session = Depends(get_db)) -> Issue:
     issue = db.get(Issue, issue_id)
     if not issue:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found"
+        )
     return issue
 
 
 def get_comment(comment_id: UUID, db: Session = Depends(get_db)) -> Comment:
     comment = db.get(Comment, comment_id)
     if not comment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found"
+        )
     return comment
 
 
@@ -54,7 +60,9 @@ def require_issue_update_permission(
 ) -> Issue:
     issue = db.get(Issue, issue_id)
     if not issue:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found"
+        )
 
     is_manager = user.role in {UserRole.manager, UserRole.admin}
     is_reporter = user.id == issue.reporter
@@ -66,7 +74,9 @@ def require_issue_update_permission(
     data = payload.model_dump(exclude_unset=True)
     if "assignee" in data and data["assignee"] != issue.assignee:
         if not (is_manager or is_reporter):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
+            )
 
     return issue
 
@@ -76,5 +86,7 @@ def require_comment_author(
     user: User = Depends(get_current_user),
 ) -> Comment:
     if comment.author_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only author can edit")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Only author can edit"
+        )
     return comment

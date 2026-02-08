@@ -6,7 +6,12 @@ from app.services import auth as auth_service
 
 
 def seed_user(db):
-    u = User(username="authu", email="authu@x.com", password_hash=hash_password("User123!"), role=UserRole.developer)
+    u = User(
+        username="authu",
+        email="authu@x.com",
+        password_hash=hash_password("User123!"),
+        role=UserRole.developer,
+    )
     db.add(u)
     db.commit()
     return u
@@ -49,7 +54,9 @@ def test_logout_revokes_access_token(client, db_session):
     user = seed_user(db_session)
     access, refresh, _ = auth_service.create_token_pair(str(user.id))
 
-    resp = client.post("/api/auth/logout", json={"refresh_token": refresh}, headers=auth_header(access))
+    resp = client.post(
+        "/api/auth/logout", json={"refresh_token": refresh}, headers=auth_header(access)
+    )
     assert resp.status_code == 204
     resp = client.get("/api/auth/me", headers=auth_header(access))
     assert resp.status_code == 401

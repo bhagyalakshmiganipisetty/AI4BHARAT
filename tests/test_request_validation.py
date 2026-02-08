@@ -43,7 +43,9 @@ def test_sort_whitelist_ignores_unknown(client, db_session):
 
     db_session.add_all(
         [
-            Project(name="Alpha", description="Alpha project", created_by_id=manager.id),
+            Project(
+                name="Alpha", description="Alpha project", created_by_id=manager.id
+            ),
             Project(name="Beta", description="Beta project", created_by_id=manager.id),
         ]
     )

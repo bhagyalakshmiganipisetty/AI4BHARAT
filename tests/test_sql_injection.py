@@ -10,16 +10,29 @@ def _auth_headers(user_id: str) -> dict[str, str]:
 
 
 def test_login_rejects_sql_injection(client, db_session):
-    user = User(username="loginuser", email="loginuser@example.com", password_hash=hash_password("User123!"), role=UserRole.developer)
+    user = User(
+        username="loginuser",
+        email="loginuser@example.com",
+        password_hash=hash_password("User123!"),
+        role=UserRole.developer,
+    )
     db_session.add(user)
     db_session.commit()
 
-    resp = client.post("/api/auth/login", json={"username": "' OR 1=1 --", "password": "DoesntMatter1!"})
+    resp = client.post(
+        "/api/auth/login",
+        json={"username": "' OR 1=1 --", "password": "DoesntMatter1!"},
+    )
     assert resp.status_code == 401
 
 
 def test_search_does_not_bypass_filters(client, db_session):
-    manager = User(username="sqlmgr", email="sqlmgr@example.com", password_hash=hash_password("Manager123!"), role=UserRole.manager)
+    manager = User(
+        username="sqlmgr",
+        email="sqlmgr@example.com",
+        password_hash=hash_password("Manager123!"),
+        role=UserRole.manager,
+    )
     db_session.add(manager)
     db_session.flush()
 
@@ -44,12 +57,16 @@ def test_search_does_not_bypass_filters(client, db_session):
     assert len(resp_all.json()) == 2
 
     injection = "' OR 1=1 --"
-    resp_search = client.get("/api/projects", params={"search": injection}, headers=headers)
+    resp_search = client.get(
+        "/api/projects", params={"search": injection}, headers=headers
+    )
     assert resp_search.status_code == 422
 
     resp_issue_all = client.get("/api/issues", headers=headers)
     assert resp_issue_all.status_code == 200
     assert len(resp_issue_all.json()) == 1
 
-    resp_issue_search = client.get("/api/issues", params={"search": injection}, headers=headers)
+    resp_issue_search = client.get(
+        "/api/issues", params={"search": injection}, headers=headers
+    )
     assert resp_issue_search.status_code == 422

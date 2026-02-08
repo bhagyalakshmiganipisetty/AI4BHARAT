@@ -13,7 +13,9 @@ from app.services.token_store import InMemoryStore
 
 
 def _make_user(role: UserRole, user_id=None, username="user") -> User:
-    user = User(id=user_id or uuid4(), username=username, password_hash="hash", role=role)
+    user = User(
+        id=user_id or uuid4(), username=username, password_hash="hash", role=role
+    )
     user.email = f"{username}@example.com"
     return user
 

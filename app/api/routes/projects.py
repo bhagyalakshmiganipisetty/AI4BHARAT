@@ -4,7 +4,11 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.api.permissions import get_project, require_manager_or_admin, require_project_manage
+from app.api.permissions import (
+    get_project,
+    require_manager_or_admin,
+    require_project_manage,
+)
 from app.api.query import SEARCH_PATTERN, SORT_PATTERN, apply_pagination, apply_sort
 from app.models import Issue, IssuePriority, IssueStatus, Project, User
 from app.schemas.issue import IssueCreateForProject, IssueOut
@@ -31,7 +35,15 @@ def list_projects(
     if search:
         like = f"%{search}%"
         q = q.filter(or_(Project.name.ilike(like), Project.description.ilike(like)))
-    q = apply_sort(q, sort, {"name": Project.name, "created_at": Project.created_at, "updated_at": Project.updated_at})
+    q = apply_sort(
+        q,
+        sort,
+        {
+            "name": Project.name,
+            "created_at": Project.created_at,
+            "updated_at": Project.updated_at,
+        },
+    )
     q = apply_pagination(q, page, limit)
     return q.all()
 
@@ -43,7 +55,11 @@ def create_project(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(require_manager_or_admin),
 ):
-    project = Project(name=payload.name, description=sanitize_markdown(payload.description), created_by_id=current_user.id)
+    project = Project(
+        name=payload.name,
+        description=sanitize_markdown(payload.description),
+        created_by_id=current_user.id,
+    )
     db.add(project)
     db.commit()
     db.refresh(project)
@@ -57,7 +73,9 @@ def create_project(
 
 
 @router.get("/{project_id}", response_model=ProjectOut)
-def get_project_detail(project: Project = Depends(get_project), _: User = Depends(deps.get_current_user)):
+def get_project_detail(
+    project: Project = Depends(get_project), _: User = Depends(deps.get_current_user)
+):
     return project
 
 
@@ -142,7 +160,9 @@ def list_project_issues(
     return q.all()
 
 
-@router.post("/{project_id}/issues", response_model=IssueOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{project_id}/issues", response_model=IssueOut, status_code=status.HTTP_201_CREATED
+)
 def create_project_issue(
     payload: IssueCreateForProject,
     request: Request,

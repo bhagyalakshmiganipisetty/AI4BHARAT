@@ -31,11 +31,19 @@ class Issue(Base):
     description = Column(Text, nullable=False)
     status = Column(Enum(IssueStatus), nullable=False, default=IssueStatus.open)
     priority = Column(Enum(IssuePriority), nullable=False, default=IssuePriority.medium)
-    project = Column(GUID(), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    reporter = Column(GUID(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
-    assignee = Column(GUID(), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    project = Column(
+        GUID(), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    reporter = Column(
+        GUID(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
+    )
+    assignee = Column(
+        GUID(), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     due_date = Column(Date, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
     updated_at = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
@@ -46,4 +54,6 @@ class Issue(Base):
     project_ref = relationship("Project", foreign_keys=[project])
     reporter_user = relationship("User", foreign_keys=[reporter])
     assignee_user = relationship("User", foreign_keys=[assignee])
-    comments = relationship("Comment", cascade="all, delete-orphan", back_populates="issue")
+    comments = relationship(
+        "Comment", cascade="all, delete-orphan", back_populates="issue"
+    )

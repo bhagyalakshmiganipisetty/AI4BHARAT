@@ -15,7 +15,9 @@ def _create_engine():
     if settings.env.lower() == "test":
         db_url = "sqlite+pysqlite:///:memory:"
         connect_args = {"check_same_thread": False}
-    return create_engine(db_url, pool_pre_ping=True, future=True, connect_args=connect_args)
+    return create_engine(
+        db_url, pool_pre_ping=True, future=True, connect_args=connect_args
+    )
 
 
 def get_engine():
@@ -28,7 +30,9 @@ def get_engine():
 def get_session_local():
     global _SessionLocal
     if _SessionLocal is None:
-        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine(), future=True)
+        _SessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=get_engine(), future=True
+        )
     return _SessionLocal
 
 
