@@ -95,7 +95,7 @@ jobs:
           load: true
           tags: ai4b-api:ci
       - name: Trivy scan
-        uses: aquasec/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: ai4b-api:ci
           severity: CRITICAL,HIGH
