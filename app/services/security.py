@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from jose import jwt
+import jwt
 import bleach
 import bcrypt
 
@@ -72,7 +72,10 @@ def create_token(
 
 
 def decode_token(token: str) -> Dict[str, Any]:
-    return jwt.decode(token, get_public_key(), algorithms=[settings.jwt_alg])
+    try:
+        return jwt.decode(token, get_public_key(), algorithms=[settings.jwt_alg])
+    except jwt.PyJWTError as exc:
+        raise ValueError("Invalid token") from exc
 
 
 def sanitize_markdown(text: str | None) -> str | None:

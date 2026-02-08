@@ -72,7 +72,10 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(deps.ge
 @router.post("/refresh", response_model=TokenPair, responses=UNAUTHORIZED)
 @limiter.limit(settings.rate_limit_sensitive)
 def refresh(payload: RefreshRequest, request: Request):
-    data = security.decode_token(payload.refresh_token)
+    try:
+        data = security.decode_token(payload.refresh_token)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid token")
     if data.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid token type")
     auth_service.enforce_refresh_active(data.get("sub"), data.get("jti"))
@@ -120,7 +123,10 @@ def logout(
 
     if auth_service.is_blacklisted(payload.refresh_token):
         return None
-    data = security.decode_token(payload.refresh_token)
+    try:
+        data = security.decode_token(payload.refresh_token)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid token")
     if data.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid token type")
     auth_service.enforce_refresh_active(data.get("sub"), data.get("jti"))
