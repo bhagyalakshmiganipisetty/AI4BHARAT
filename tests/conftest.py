@@ -41,13 +41,11 @@ def _ensure_jwt_keys() -> None:
 
 _ensure_jwt_keys()
 
-from app.db.session import Base
-from app.main import app
-from app.api import deps
-
 
 @pytest.fixture(scope="session")
 def engine():
+    from app.db.session import Base
+
     eng = create_engine(
         "sqlite+pysqlite:///:memory:", connect_args={"check_same_thread": False}
     )
@@ -69,6 +67,9 @@ def db_session(engine):
 
 @pytest.fixture(scope="function")
 def client(db_session):
+    from app.api import deps
+    from app.main import app
+
     def override_get_db():
         try:
             yield db_session

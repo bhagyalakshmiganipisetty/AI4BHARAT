@@ -1,16 +1,8 @@
 from datetime import timedelta
 
-from app.models import (
-    Issue,
-    IssuePriority,
-    IssueStatus,
-    Project,
-    User,
-    UserRole,
-    Comment,
-)
+from app.models import Comment, Issue, IssuePriority, Project, User, UserRole
 from app.services.security import hash_password
-from app.services import auth as auth_service, security as sec
+from app.services import security as sec
 
 
 def seed_basic(db):
