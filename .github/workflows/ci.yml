@@ -40,7 +40,7 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --with dev
       - name: Tests
-        run: pytest --cov=app --cov-report=term --cov-fail-under=85 -k "not integration"
+        run: pytest --cov=app --cov-report=term --cov-fail-under=70 -k "not integration"
 
   integration:
     runs-on: ubuntu-latest

@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     rate_limit_sensitive: str = "10/minute"
     password_min_length: int = 8
     password_complexity_regex: str = (
-        r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$"
+        r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
     )
 
     cors_origins: str = "http://localhost:3000"
