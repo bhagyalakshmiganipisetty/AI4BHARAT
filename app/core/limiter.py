@@ -1,3 +1,5 @@
+from typing import Any
+
 from app.core.config import settings
 
 
@@ -10,7 +12,7 @@ class _NoopLimiter:
 
 
 if settings.env.lower() == "test":
-    limiter = _NoopLimiter()
+    limiter: Any = _NoopLimiter()
 else:
     from slowapi import Limiter
     from slowapi.util import get_remote_address

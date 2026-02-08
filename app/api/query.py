@@ -1,11 +1,16 @@
+from typing import Any
+
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Query
+from sqlalchemy.sql import ColumnElement
 
 SEARCH_PATTERN = r"^[A-Za-z0-9 _.,@-]*$"
 SORT_PATTERN = r"^-?[a-z_]+$"
 
 
-def apply_sort(query: Query, sort: str | None, allowed: dict[str, object]) -> Query:
+def apply_sort(
+    query: Query, sort: str | None, allowed: dict[str, ColumnElement[Any]]
+) -> Query:
     if not sort:
         return query
     direction = desc if sort.startswith("-") else asc
