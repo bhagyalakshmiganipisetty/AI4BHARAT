@@ -10,7 +10,7 @@ python = "^3.12"
 fastapi = "^0.121.3"
 uvicorn = {extras = ["standard"], version = "^0.31.0"}
 sqlalchemy = "^2.0.29"
-alembic = "^1.13.1"
+alembic = "^1.18.4"
 psycopg2-binary = "^2.9.9"
 pyjwt = {extras = ["crypto"], version = "^2.10.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
